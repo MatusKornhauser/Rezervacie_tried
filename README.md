@@ -9,7 +9,7 @@ komunikuje s PHP endpointami cez fetch() a JSON.
 
 
 1. ARCHITEKTÚRA
----------------
+
 Klasická "stránka + JSON API" štruktúra, každý endpoint je samostatný .php súbor.
 
   Stránky (vracajú HTML):
@@ -39,7 +39,7 @@ fetch() z JSON endpointov. PHP do nich vkladá iba meno prihláseného učiteľa
 
 
 2. DATABÁZA
------------
+
 Tri tabuľky (InnoDB, utf8mb4_unicode_ci):
 
   teachers      id, username (email, UNIQUE), full_name, password_hash,
@@ -57,7 +57,7 @@ Učebne sa spravujú priamo v DB (tabuľka classrooms), v aplikácii na to nie j
 
 
 3. AUTENTIFIKÁCIA
------------------
+
 Identita je uložená v $_SESSION['teacher_id'] (session name z config.php).
 
 Heslom (auth.php):
@@ -90,7 +90,7 @@ môže každý prihlásený.
 
 
 4. TOK VYTVORENIA REZERVÁCIE
-----------------------------
+
 index.php -> POST create_reservation.php (JSON):
   { classroom_id, date, time_from, time_to, note }
 
@@ -112,7 +112,7 @@ sa escapujú (htmlspecialchars v PHP, esc() v JS).
 
 
 5. FRONTEND (index.php)
------------------------
+
   - buildTimeOptions(): generuje časy 07:00 – 19:00 po 30 minútach
   - loadCalendar(): paralelne (Promise.all) stiahne get_classrooms.php
     a get_reservations.php?start_date&end_date pre zobrazený mesiac,
@@ -130,7 +130,7 @@ delete_reservation.php?id=...
 
 
 6. API
-------
+
 Všetky endpointy vyžadujú prihlásenie. Odpoveď má tvar {ok: bool, ...},
 pri chybe {ok: false, error: "..."} a príslušný HTTP kód.
 
@@ -156,7 +156,7 @@ pri chybe {ok: false, error: "..."} a príslušný HTTP kód.
 
 
 7. INŠTALÁCIA
--------------
+
   1) Databáza: v phpMyAdmin vytvor databázu `rezervacie`
      (utf8mb4_unicode_ci) a importuj schema.sql
   2) config.php: nastav db_host, db_name, db_user, db_pass. Pre Microsoft
@@ -168,20 +168,4 @@ pri chybe {ok: false, error: "..."} a príslušný HTTP kód.
   4) Požiadavky: PHP 8+ s PDO MySQL a cURL, MySQL 8.0.16+ / MariaDB 10.2+
      (kvôli CHECK constraintu)
 
-Poznámka: config.php obsahuje prihlasovacie údaje, nedávaj ho do verejného
-repozitára (pridaj do .gitignore a drž v ňom iba lokálne hodnoty).
 
-
-8. ZNÁME OBMEDZENIA
--------------------
-  - Kontrola konfliktov je len v PHP (SELECT + INSERT bez transakcie ani
-    zámku), takže pri dvoch súbežných requestoch na ten istý termín sa môžu
-    vytvoriť dve rezervácie. DB constraint na prekrývanie neexistuje.
-  - Rozsah 07:00 – 19:00 vynucuje iba UI; backend akceptuje akýkoľvek čas
-    zarovnaný na 30 minút. Minulé dátumy sa neblokujú.
-  - Rušenie je cez GET (delete_reservation.php?id=), čo nie je ideálne pre
-    operáciu, ktorá mení dáta (chýba CSRF ochrana).
-  - Rezervácie sa nedajú upravovať, iba zrušiť a vytvoriť nanovo.
-  - Správa učební a používateľov (admin) nie je, rieši sa priamo v DB.
-  - V index.php ostali nepoužité premenné z predchádzajúcej verzie
-    (dateLabel, tableBody) a zakomentovaný CSS.
